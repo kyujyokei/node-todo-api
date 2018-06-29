@@ -15,8 +15,6 @@ const todos = [{
     text: 'Second test todo'
 }];
 
-
-
 // this funtion will run everytime (every if) before the test case
 beforeEach((done) => {
     // // wipes out db
@@ -107,10 +105,61 @@ describe('GET /todos/:id', () => {
             .end(done);
     });
 
-    it('Shoul return a 404 for non-object ids', (done) => {
+    it('Should return a 404 for non-object ids', (done) => {
         request(app)
             .get('/todos/123')
             .expect(404)
             .end(done);
     });
+});
+
+describe('DELETE /todos/:id', () => {
+    it('Should remove a todo', (done) => {
+        var hexId = todos[1]._id.toHexString();
+
+        request(app)
+            .delete(`/todos/${hexId}`)
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.todo._id).toBe(hexId);
+            })
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+
+                // query database
+                Todo.findById(hexId).then((todo) => {
+                    expect(todo).toNotExist();
+                    done();
+                }).catch((err) => {
+                    done(err);
+                });
+            });
+    });
+
+    it('Should return 404 if todo not found', () => {
+        var newId = new ObjectID();
+
+        request(app)
+            .delete(`/todos/${newId}`)
+            .expect(404)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+            });
+    });
+
+    it('Should return 404 if object id is invalid', () => {
+        request(app)
+            .delete(`/todos/123`)
+            .expect(404)
+            .end((err, res) => {
+                if (err) {
+                    return done(err);
+                }
+            });
+    });
+
 });
