@@ -17,6 +17,7 @@ const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json()); // give this json() function as a middle ware to express, so we can send json to application
 
+// POST todos
 app.post('/todos', (req, res) => {
     var todo = new Todo({
         text: req.body.text
@@ -106,6 +107,29 @@ app.patch('/todos/:id', (req, res) => {
         return res.status(400).send();
     });
 })
+
+// POST users
+app.post('/users', (req, res) => {
+
+    var body = _.pick(req.body, ['email', 'password']);
+    var user = new User(body);
+
+    user.save().then(() => {
+        return user.generateAuthToken();
+    }).then((token) => {
+        res.header('x-auth', token).send(user);
+    }).catch((err) => {
+        res.status(400).send(err);
+    });
+});
+
+
+
+
+
+
+
+
 
 app.listen(port, () => {
     console.log(`Starting on port ${port}`);
