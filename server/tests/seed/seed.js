@@ -20,7 +20,11 @@ const users = [{
     // user without valid auth
     _id: UserTwoId,
     email: 'jen@example.com',
-    password: 'userTwoPass'
+    password: 'userTwoPass',
+    tokens: [{
+        access: 'auth',
+        token: jwt.sign({_id: UserTwoId, access: 'auth'}, 'abc123').toString()
+    }]
 }];
 
 

@@ -44,52 +44,58 @@ app.get('/todos', authenticate, (req, res) => {
 });
 
 // GET /todos/123
-app.get('/todos/:id', (req, res) => {
+app.get('/todos/:id', authenticate, (req, res) => {
 
     var id = req.params.id;
 
     if (!ObjectID.isValid(id)){
-        res.status(404).send('ID not valid'); // the ID was not valid (checked by mongoose)
+        return res.status(404).send(); // the ID was not valid (checked by mongoose)
     }
 
-    Todo.findById(id).then((todo) => {
+    Todo.findOne({
+        _id: id,
+        _creator: req.user._id
+    }).then((todo) => {
         if (!todo) {
-            console.log('Not found');
-            return res.status(404).send({}); // query succeed but found to mathcing result
+            console.log();
+            return res.status(404).send(); // query succeed but found to mathcing result
         }
         res.status(200).send({todo});
     }).catch((err) => {
-        console.log('Error');
-        res.status(400).send({})
+        console.log();
+        res.status(400).send()
     }); // query got error and failed
 
 });
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
     var id = req.params.id;
 
     if (!ObjectID.isValid(id)){
-        res.status(404).send('ID not valid');
+        return res.status(404).send();
     }
 
-    Todo.findByIdAndRemove(id).then((todo) => {
+    Todo.findOneAndRemove({
+        _id: id,
+        _creator: req.user._id
+    }).then((todo) => {
         if (!todo) {
-            return res.status(404).send('Not found');
+            return res.status(404).send();
         }
 
         res.status(200).send({todo});
     }).catch((err) => {
-        res.status(400).send({});
+        res.status(400).send();
     });
 });
 
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
     var id = req.params.id;
 
     var body = _.pick(req.body, ['text', 'completed']) // only takes the contents that should be updated
 
     if (!ObjectID.isValid(id)){
-        res.status(404).send('ID not valid');
+        return res.status(404).send('ID not valid');
     }
 
     if (_.isBoolean(body.completed) && body.completed){
@@ -99,7 +105,10 @@ app.patch('/todos/:id', (req, res) => {
         body.completedAt = null;
     }
 
-    Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+    Todo.findOneAndUpdate ({
+        _id: id, 
+        _creator: req.user._id}
+        , {$set: body}, {new: true}).then((todo) => {
 
         if (!todo) {
             return res.status(404).send();
