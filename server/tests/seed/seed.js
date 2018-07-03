@@ -18,6 +18,7 @@ const users = [{
     }]
 }, {
     // user without valid auth
+    _id: UserTwoId,
     email: 'jen@example.com',
     password: 'userTwoPass'
 }];
