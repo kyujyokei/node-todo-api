@@ -19,9 +19,10 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json()); // give this json() function as a middle ware to express, so we can send json to application
 
 // POST todos
-app.post('/todos', (req, res) => {
+app.post('/todos', authenticate, (req, res) => {
     var todo = new Todo({
-        text: req.body.text
+        text: req.body.text,
+        _creator: req.user._id
     });
 
     todo.save().then((doc) => {
@@ -32,8 +33,10 @@ app.post('/todos', (req, res) => {
 });
 
 // GET all todos
-app.get('/todos', (req, res) => {
-    Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+    Todo.find({
+        _creator: req.user._id // only shows the logged in user's todos
+    }).then((todos) => {
         res.send({todos});
     },  (err) => {
         res.status(400).send({err});
